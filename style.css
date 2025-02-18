@@ -1,0 +1,121 @@
+body {
+  background-color: #222;
+  color: #fff;
+  font-family: Arial, sans-serif;
+}
+
+form{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 60px;
+}
+
+.search-input{
+  width: 60%;
+  max-width: 400px;
+  padding: 10px 20px;
+  border: none;
+  box-shadow: 0 0 6px rgb(0, 0, 0, 0.2);
+  border-radius: 5px;
+  font-size: 18px;
+  color: #333;
+}
+.search-button{
+  padding: 10px 20px;
+  background-color: #138065;
+  color: #fff;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-left: 10px;
+}
+.search-results{
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  max-width: 1200px;
+  margin: 0px auto;
+}
+.search-result{
+  margin-bottom: 60px;
+  width: 30%;
+  height: 100%;
+  border-radius: 5px;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+.search-result img{
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  transition: opacity 0.2s ease-in-out;
+}
+.search-result:hover img{
+  opacity: 0.8;
+}
+.search-result a{
+  font-size: 18px;
+  text-decoration: none;
+  color: white;
+  display: block;
+  padding: 10px;
+  text-transform: capitalize;
+}
+
+.movie-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.movie {
+  margin: 10px;
+  padding: 10px;
+  background-color: #333;
+  border-radius: 5px;
+}
+
+.movie img {
+  width: 100%;
+  height: 300px; /* Adjust the height as needed */
+  object-fit: cover; /* Maintains aspect ratio and fills the container */
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.3s ease; /* Smooth transition effect */
+}
+
+.movie img:hover {
+  transform: scale(1.05);
+  opacity: 30%;
+}
+
+.pagination {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.pagination button {
+  background-color: #444;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  margin: 0 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* Smooth transition effect */
+}
+
+.pagination button:hover {
+  background-color: #666;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.header {
+  text-align: center;
+}

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movie Details</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1 class="header">LBR Movies</h1>
+    <form action="" method="get" id="movieForm">
+      <input
+        id="movieTitle"
+        required
+        type="text"
+        class="search-input"
+        placeholder="search for movies"
+      />
+      <button class="search-button" type="button" onclick="searchMovie()">
+        Search
+      </button>
+    </form>
+
+    <iframe
+      src="https://yeahmovies.to/home"
+      width="600"
+      height="400"
+      frameborder="0"
+      allowfullscreen
+    ></iframe>
+
+    <div id="movieDetails"></div>
+
+    <script>
+      async function fetchMovieDetails(movieTitle) {
+        const omdbApiKey = "df122759"; // Your OMDB API key
+        const omdbApiUrl = `http://www.omdbapi.com/?t=${encodeURIComponent(
+          movieTitle
+        )}&apikey=${omdbApiKey}`;
+
+        try {
+          const response = await fetch(omdbApiUrl);
+          const data = await response.json();
+
+          if (data.Response === "True") {
+            displayMovieDetails(data);
+          } else {
+            console.error("Movie not found:", movieTitle);
+            document.getElementById("movieDetails").innerHTML =
+              "<p>Movie not found.</p>";
+          }
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          document.getElementById("movieDetails").innerHTML =
+            "<p>Error fetching data.</p>";
+        }
+      }
+
+      async function displayMovieDetails(movieData) {
+        const movieDetailsDiv = document.getElementById("movieDetails");
+
+        const actors = movieData.Actors.split(", ");
+
+        let actorsHTML = "";
+        for (const actor of actors) {
+          const actorDetails = await fetchActorDetails(actor);
+          actorsHTML += `
+          <div>
+            <h3>${actor}</h3>
+            <img src="${actorDetails.img}" alt="${actor} Image">
+          </div>
+        `;
+        }
+
+        const movieHTML = `
+        <h2>${movieData.Title}</h2>
+        <img src="${movieData.Poster}" alt="${movieData.Title} Poster">
+        <p><strong>Year:</strong> ${movieData.Year}</p>
+        <p><strong>Genre:</strong> ${movieData.Genre}</p>
+        <p><strong>Director:</strong> ${movieData.Director}</p>
+        <p><strong>Actors:</strong> ${actorsHTML}</p>
+        <p><strong>Plot:</strong> ${movieData.Plot}</p>
+      `;
+
+        movieDetailsDiv.innerHTML = movieHTML;
+      }
+
+      async function fetchActorDetails(actorName) {
+        const actorApiUrl = `https://api.themoviedb.org/3/search/person?api_key=YOUR_API_KEY&query=${encodeURIComponent(
+          actorName
+        )}`;
+
+        try {
+          const response = await fetch(actorApiUrl);
+          const data = await response.json();
+
+          if (data.results && data.results.length > 0) {
+            const actorDetails = {
+              img: `https://image.tmdb.org/t/p/w185${data.results[0].profile_path}`,
+            };
+            return actorDetails;
+          } else {
+            console.error("Actor not found:", actorName);
+            return { img: "placeholder_image_url" }; // Placeholder image URL
+          }
+        } catch (error) {
+          console.error("Error fetching actor data:", error);
+          return { img: "placeholder_image_url" }; // Placeholder image URL
+        }
+      }
+
+      // Get the movie title from the query parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const movieTitle = urlParams.get("title");
+
+      // Fetch and display movie details
+      fetchMovieDetails(movieTitle);
+
+      //code 2 TMDB
+
+      const apiKey = "1ede6306059e84eee3785c0706e91188";
+
+      async function fetchActorImage(actorName) {
+        try {
+          const response = await fetch(
+            `https://api.themoviedb.org/3/search/person?api_key=${apiKey}&query=${encodeURIComponent(
+              actorName
+            )}`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch actor data from TMDB API");
+          }
+          const data = await response.json();
+          if (data.results.length > 0) {
+            const actorId = data.results[0].id;
+            const imagesResponse = await fetch(
+              `https://api.themoviedb.org/3/person/${actorId}/images?api_key=${apiKey}`
+            );
+            if (!imagesResponse.ok) {
+              throw new Error("Failed to fetch actor images from TMDB API");
+            }
+            const imagesData = await imagesResponse.json();
+            const actorImages = imagesData.profiles.map(
+              (profile) => profile.file_path
+            );
+            return actorImages;
+          } else {
+            return null;
+          }
+        } catch (error) {
+          console.error("Error fetching actor data:", error.message);
+          return [];
+        }
+      }
+
+      async function displayMovieDetails(movieData) {
+        const movieDetailsDiv = document.getElementById("movieDetails");
+
+        const actors = movieData.Actors.split(", "); // Split actors by comma and space
+        let actorHTML = "<p><strong>Actors:</strong> ";
+
+        for (const actor of actors) {
+          const actorImages = await fetchActorImage(actor);
+          if (actorImages && actorImages.length > 0) {
+            const firstImage = actorImages[0]; // Get the first image only
+            actorHTML += `<p>${actor}</p>`;
+            actorHTML += `<img src="https://image.tmdb.org/t/p/w185/${firstImage}" alt="${actor}">`;
+          } else {
+            actorHTML += `<p>${actor}</p><p>No image available</p>`;
+          }
+        }
+
+        actorHTML += "</p>";
+
+        const movieHTML = `
+            <h2>${movieData.Title}</h2>
+            <img src="${movieData.Poster}" alt="${movieData.Title} Poster">
+            <p><strong>Year:</strong> ${movieData.Year}</p>
+            <p><strong>Genre:</strong> ${movieData.Genre}</p>
+            <p><strong>Director:</strong> ${movieData.Director}</p>
+            ${actorHTML}
+            <p><strong>Plot:</strong> ${movieData.Plot}</p>
+        `;
+
+        movieDetailsDiv.innerHTML = movieHTML;
+      }
+
+      // Get the movie title from the query parameter
+      urlParams = new URLSearchParams(window.location.search);
+      movieTitle = urlParams.get("title");
+
+      // Fetch and display movie details
+      fetchMovieDetails(movieTitle);
+    </script>
+  </body>
+</html>
