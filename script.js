@@ -46,7 +46,7 @@ async function searchMovie() {
 }
 
 async function fetchMovies() {
-  const omdbApiUrl = `http://www.omdbapi.com/?s=${encodeURIComponent(
+  const omdbApiUrl = `https://www.omdbapi.com/?s=${encodeURIComponent(
     currentSearchQuery
   )}&apikey=${omdbApiKey}&page=${currentPage}`;
 
