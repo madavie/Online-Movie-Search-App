@@ -1,85 +1,165 @@
+const omdbApiKey = "df122759";
+
+let currentPage = 1;
+const moviesPerPage = 10; // Reduced for better pagination
+let totalMovies = 0;
+let totalPages = 0;
+let currentSearchQuery = "";
+
+// Default movies to display on page load
 const defaultMovies = [
-  "Titanic",
-  "The Shawshank Redemption",
   "Inception",
-  "The Godfather",
-  "Pulp Fiction",
-  "Forrest Gump",
   "The Dark Knight",
-  "Schindler's List",
-  "The Lord of the Rings: The Return of the King",
-  "Fight Club",
-  "The Matrix",
-  "Goodfellas",
-  "The Silence of the Lambs",
-  "Saving Private Ryan",
-  "The Green Mile",
-  "The Avengers",
-  "Avatar",
-  "The Lion King",
-  "Gladiator",
-  "The Departed",
-  "The Prestige",
   "Interstellar",
-  "The Social Network",
-  "The Wolf of Wall Street",
-  "The Grand Budapest Hotel",
+  "The Matrix",
+  "Gladiator",
+  "Avatar",
+  "Titanic",
+  "The Avengers",
   "Jurassic Park",
-  "Inglourious Basterds",
-  "The Revenant",
   "Forrest Gump",
-  "La La Land",
-  "The Godfather: Part II",
-  "The Dark Knight Rises",
-  "The Matrix Reloaded",
-  "The Matrix Revolutions",
-  "Jurassic World",
-  "Finding Nemo",
-  "Toy Story",
-  "Toy Story 2",
-  "Toy Story 3",
-  "The Incredibles",
-  "Ratatouille",
-  "WALL-E",
-  "Up",
-  "Inside Out",
-  "Coco",
-  "Frozen",
-  "Frozen II",
-  "Moana",
-  "Aladdin",
-  "Beauty and the Beast",
-  "The Little Mermaid",
-  "Jaws",
-  "E.T. the Extra-Terrestrial",
-  "Indiana Jones and the Raiders of the Lost Ark",
-  "The Shawshank Redemption",
-  "The Godfather",
-  "Schindler's List",
-  "The Lord of the Rings: The Fellowship of the Ring",
-  "The Lord of the Rings: The Two Towers",
-  "The Lord of the Rings: The Return of the King",
-  "Harry Potter and the Sorcerer's Stone",
-  "Harry Potter and the Chamber of Secrets",
-  "Harry Potter and the Prisoner of Azkaban",
-  "Harry Potter and the Goblet of Fire",
-  "Harry Potter and the Order of the Phoenix",
-  "Harry Potter and the Half-Blood Prince",
-  "Harry Potter and the Deathly Hallows – Part 1",
-  "Harry Potter and the Deathly Hallows – Part 2",
-  "Star Wars: Episode IV - A New Hope",
-  "Star Wars: Episode V - The Empire Strikes Back",
-  "Star Wars: Episode VI - Return of the Jedi",
-  "Star Wars: Episode I - The Phantom Menace",
-  "Star Wars: Episode II - Attack of the Clones",
-  "Star Wars: Episode III - Revenge of the Sith",
-  "Star Wars: The Force Awakens",
-  "Star Wars: The Last Jedi",
-  "Star Wars: The Rise of Skywalker",
-  "Indiana Jones and the Temple of Doom",
-  "Indiana Jones and the Last Crusade",
-  "The Hunger Games",
-  "The Hunger Games: Catching Fire",
-  "The Hunger Games: Mockingjay – Part 1",
-  "The Hunger Games: Mockingjay – Part 2",
 ];
+
+// Fetch and display default movies on page load
+window.onload = () => {
+  const savedTheme = localStorage.getItem("theme") || "dark";
+  document.body.setAttribute("data-theme", savedTheme);
+  displayDefaultMovies();
+};
+
+async function displayDefaultMovies() {
+  const movieResultDiv = document.getElementById("movieResults");
+  movieResultDiv.innerHTML = "";
+
+  for (const movieTitle of defaultMovies) {
+    await searchMovieDetails(movieTitle);
+  }
+}
+
+async function searchMovie() {
+  const movieTitle = document.getElementById("movieTitle").value.trim();
+  if (!movieTitle) return;
+
+  currentSearchQuery = movieTitle;
+  currentPage = 1; // Reset to first page on new search
+  await fetchMovies();
+}
+
+async function fetchMovies() {
+  const omdbApiUrl = `http://www.omdbapi.com/?s=${encodeURIComponent(
+    currentSearchQuery
+  )}&apikey=${omdbApiKey}&page=${currentPage}`;
+
+  showLoadingSpinner(true);
+
+  try {
+    const response = await fetch(omdbApiUrl);
+    const data = await response.json();
+
+    if (data.Response === "True") {
+      const movies = data.Search;
+      totalMovies = parseInt(data.totalResults);
+      totalPages = Math.ceil(totalMovies / moviesPerPage);
+      displayMovies(movies);
+      updatePaginationButtons();
+    } else {
+      displayError("No movies found. Please try another search.");
+    }
+  } catch (error) {
+    displayError("Error fetching data. Please try again.");
+  } finally {
+    showLoadingSpinner(false);
+  }
+}
+
+function displayMovies(movies) {
+  const movieResultDiv = document.getElementById("movieResults");
+  movieResultDiv.innerHTML = "";
+
+  movies.forEach((movie) => {
+    searchMovieDetails(movie);
+  });
+}
+
+async function searchMovieDetails(movie) {
+  const omdbApiUrl = `http://www.omdbapi.com/?t=${encodeURIComponent(
+    movie.Title || movie
+  )}&apikey=${omdbApiKey}`;
+
+  try {
+    const response = await fetch(omdbApiUrl);
+    const data = await response.json();
+
+    if (data.Response === "True") {
+      const movieResultDiv = document.getElementById("movieResults");
+
+      // Create a container for each movie
+      const movieContainer = document.createElement("div");
+      movieContainer.classList.add("movie");
+
+      // Construct HTML for movie details
+      const movieHTML = `
+        <img src="${data.Poster}" alt="${data.Title} Poster" onclick="goToVideoPage('${data.Title}')">
+        <p><strong>Year:</strong> ${data.Year}</p>
+        <p><strong>Rating:</strong> ${data.imdbRating}</p>
+        <h2 onclick="goToVideoPage('${data.Title}')">${data.Title}</h2>
+      `;
+
+      movieContainer.innerHTML = movieHTML;
+      movieResultDiv.appendChild(movieContainer);
+    } else {
+      console.error("Movie not found:", movie.Title || movie);
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+}
+
+function prevPage() {
+  if (currentPage > 1) {
+    currentPage--;
+    fetchMovies();
+  }
+}
+
+function nextPage() {
+  if (currentPage < totalPages) {
+    currentPage++;
+    fetchMovies();
+  }
+}
+
+function updatePaginationButtons() {
+  const prevButton = document.getElementById("prevButton");
+  const nextButton = document.getElementById("nextButton");
+
+  prevButton.disabled = currentPage === 1;
+  nextButton.disabled = currentPage === totalPages;
+}
+
+function goToVideoPage(movieTitle) {
+  window.location.href = `video.html?title=${encodeURIComponent(
+    movieTitle
+  )}`;
+}
+
+function showLoadingSpinner(show) {
+  const spinner = document.getElementById("loadingSpinner");
+  spinner.style.display = show ? "block" : "none";
+}
+
+function displayError(message) {
+  const movieResultDiv = document.getElementById("movieResults");
+  movieResultDiv.innerHTML = `<p class="error-message">${message}</p>`;
+}
+
+// Theme Toggle Functionality
+function toggleTheme() {
+  const body = document.body;
+  const currentTheme = body.getAttribute("data-theme");
+  const newTheme = currentTheme === "light" ? "dark" : "light";
+  body.setAttribute("data-theme", newTheme);
+
+  // Save theme preference to localStorage
+  localStorage.setItem("theme", newTheme);
+}
