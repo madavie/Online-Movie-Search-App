@@ -82,7 +82,7 @@ function displayMovies(movies) {
 }
 
 async function searchMovieDetails(movie) {
-  const omdbApiUrl = `http://www.omdbapi.com/?t=${encodeURIComponent(
+  const omdbApiUrl = `https://www.omdbapi.com/?t=${encodeURIComponent(
     movie.Title || movie
   )}&apikey=${omdbApiKey}`;
 
